@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "video-subtitle-translator"
+version = "0.1.0"
+description = "Local command-line video subtitle translator"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.8",
+    "PyYAML>=6.0",
+    "srt>=3.5",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+local-models = [
+    "faster-whisper>=1.1",
+    "transformers>=4.45",
+    "torch>=2.4",
+    "sentencepiece>=0.2",
+]
+cuda = [
+    "nvidia-cublas-cu12",
+    "nvidia-cudnn-cu12>=9",
+]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+subtitle-translator = "app.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

@@ -1,0 +1,3 @@
+# Complete CPU installation for local subtitle generation.
+# Run from the repository root: python -m pip install -r requirements.txt
+-e .[local-models]

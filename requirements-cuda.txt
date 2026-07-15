@@ -1,0 +1,2 @@
+# Complete NVIDIA installation: local models plus CUDA 12 cuBLAS/cuDNN DLLs.
+-e .[local-models,cuda]

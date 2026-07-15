@@ -1,0 +1,2 @@
+# Development and test tools. Runtime dependencies are installed through pyproject.toml.
+-e .[dev]

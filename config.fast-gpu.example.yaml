@@ -1,0 +1,15 @@
+transcription:
+  model: small
+  device: cuda
+  compute_type: float16
+  vad_filter: true
+  word_timestamps: false
+  beam_size: 3
+  batch_size: 16
+
+translation:
+  provider: nllb
+  # PyTorch CPU is supported everywhere; Whisper still runs on NVIDIA GPU.
+  device: cpu
+  batch_size: 4
+  max_length: 256

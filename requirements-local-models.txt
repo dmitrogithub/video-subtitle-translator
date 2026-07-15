@@ -1,0 +1,2 @@
+# Backward-compatible alias for the full CPU installation.
+-r requirements.txt

@@ -1,0 +1,14 @@
+transcription:
+  model: small
+  device: cpu
+  compute_type: int8
+  vad_filter: true
+  word_timestamps: false
+  beam_size: 3
+  batch_size: 1
+
+translation:
+  provider: nllb
+  device: cpu
+  batch_size: 4
+  max_length: 256
