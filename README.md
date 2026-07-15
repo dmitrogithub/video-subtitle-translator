@@ -1,33 +1,37 @@
 # Video Subtitle Translator
 
-Локальная CLI-утилита для создания переведённых `.srt`-субтитров из видео.
+A local command-line tool that generates translated `.srt` subtitles from a
+video file.
 
 ```text
 video.mp4 → FFmpeg → faster-whisper → NLLB → result.uk.srt
 ```
 
-Видео, извлечённое аудио, транскрипт и субтитры не отправляются в облачный API.
-Интернет нужен только при первой установке FFmpeg и при первой загрузке моделей.
+Videos, extracted audio, transcripts, and subtitles are never sent to a cloud
+API. Internet access is needed only the first time FFmpeg or a model is
+downloaded.
 
-## Возможности
+## Features
 
-- автоматическое определение языка речи через faster-whisper;
-- локальный перевод NLLB на `en`, `ru`, `uk`, `de`, `fi`, `fr`, `es` и `pl`;
-- SRT с переносами по словам, максимум двумя строками и сохранением таймкодов;
-- CPU, NVIDIA CUDA и автоматический выбор устройства для Whisper;
-- независимые провайдеры транскрибации и перевода — удобно добавить OpenAI,
-  DeepL, SeamlessM4T или другую локальную модель;
-- хранение FFmpeg и модельных кэшей в `components/` проекта;
-- YAML-настройки, диагностика GPU и тесты без загрузки моделей.
+- automatic speech-language detection with faster-whisper;
+- local NLLB translation for `en`, `ru`, `uk`, `de`, `fi`, `fr`, `es`, and `pl`;
+- readable SRT output: word-aware wrapping, up to two lines per cue, and
+  preserved source timing;
+- CPU, NVIDIA CUDA, and automatic device selection for Whisper;
+- replaceable transcription and translation providers, ready for OpenAI, DeepL,
+  SeamlessM4T, or other local models;
+- project-local FFmpeg and model caches under `components/`;
+- YAML configuration, GPU diagnostics, and tests that do not download models.
 
-## Требования
+## Requirements
 
-- Python 3.11+;
-- Windows 10/11 для автоматической установки FFmpeg;
-- свободное место: несколько ГБ для Whisper и около 2.5 ГБ для NLLB;
-- для CUDA — NVIDIA GPU, драйвер и CUDA-библиотеки из `requirements-cuda.txt`.
+- Python 3.11 or newer;
+- Windows 10/11 for automatic FFmpeg installation;
+- several GB of free storage for Whisper and approximately 2.5 GB for NLLB;
+- an NVIDIA GPU, driver, and the CUDA dependencies in `requirements-cuda.txt`
+  for GPU acceleration.
 
-## Быстрый старт: CPU
+## Quick start: CPU
 
 ```powershell
 git clone <YOUR_REPOSITORY_URL>
@@ -42,12 +46,14 @@ python -m app.cli setup
 python -m app.cli translate "C:\Videos\movie.mp4" --target-language uk --config .\config.fast-cpu.example.yaml
 ```
 
-При первом запуске `setup` предложит скачать FFmpeg. При первом переводе будут
-скачаны выбранная Whisper-модель и NLLB. Это нормально и выполняется один раз.
+On the first run, `setup` offers to download FFmpeg. The first translation also
+downloads the selected Whisper model and NLLB model. These downloads happen once
+and are reused later.
 
-Если `--output` не указан, рядом с видео появится файл `movie.uk.srt`.
+When `--output` is omitted, `movie.mp4` produces `movie.uk.srt` next to the
+video.
 
-## Быстрый старт: NVIDIA GPU
+## Quick start: NVIDIA GPU
 
 ```powershell
 python -m pip install -r requirements-cuda.txt
@@ -55,38 +61,38 @@ python -m app.cli diagnose
 python -m app.cli translate "C:\Videos\movie.mp4" --target-language uk --config .\config.fast-gpu.example.yaml
 ```
 
-Профиль использует Whisper `small`, `float16` и batch 16 на GPU. NLLB по
-умолчанию переводит на CPU: это надёжно для установленного CPU-only PyTorch и
-не замедляет наиболее тяжёлый этап — транскрибацию. Если установлен CUDA PyTorch,
-можно добавить `--translation-device cuda`.
+The GPU profile uses Whisper `small`, `float16`, and batch size 16. NLLB uses
+the CPU by default because a standard PyTorch installation can be CPU-only. This
+does not slow down the heaviest stage, speech transcription. If CUDA PyTorch is
+installed later, add `--translation-device cuda`.
 
-## Команды
+## Commands
 
 ```powershell
-# Проверить FFmpeg, CUDA и модельные кэши
+# Inspect FFmpeg, CUDA, and local model caches
 python -m app.cli diagnose
 
-# Установить FFmpeg в components\ без вопроса
+# Install FFmpeg into components\ without a confirmation prompt
 python -m app.cli setup --yes
 
-# Перевести с автоматическим определением языка
+# Translate with automatic source-language detection
 python -m app.cli translate "C:\Videos\movie.mp4" --target-language uk
 
-# Явно указать входной язык, путь и CPU-параметры
+# Set the source language, output path, and CPU options explicitly
 python -m app.cli translate "C:\Videos\movie.mp4" --source-language en --target-language ru --output "C:\Videos\movie.ru.srt" --device cpu --compute-type int8 --whisper-model small
 
-# Полная справка
+# Show all options
 python -m app.cli translate --help
 ```
 
-Главные параметры: `--output`, `--source-language`, `--target-language`,
+The main options are `--output`, `--source-language`, `--target-language`,
 `--whisper-model`, `--device`, `--compute-type`, `--batch-size`,
-`--translation-device`, `--config`, `--keep-temp` и `--verbose`.
+`--translation-device`, `--config`, `--keep-temp`, and `--verbose`.
 
-## Компоненты и кэши
+## Components and caches
 
-Программа не использует FFmpeg из системного `PATH`. Все крупные компоненты
-находятся в папке проекта:
+The application does not use FFmpeg from the system `PATH`. All large local
+components are stored inside the project:
 
 ```text
 components/
@@ -97,27 +103,28 @@ components/
     └── nllb/
 ```
 
-Содержимое `components/`, видео, WAV и SRT исключены из Git через `.gitignore`.
-Не добавляйте их в репозиторий.
+The contents of `components/`, videos, WAV files, and generated SRT files are
+excluded from Git through `.gitignore`. Do not commit them.
 
-## Конфигурация
+## Configuration
 
-Скопируйте [config.example.yaml](config.example.yaml), измените значения и
-передайте файл через `--config`:
+Copy [config.example.yaml](config.example.yaml), edit the values, and pass it
+using `--config`:
 
 ```powershell
 Copy-Item .\config.example.yaml .\config.yaml
 python -m app.cli translate "C:\Videos\movie.mp4" --target-language uk --config .\config.yaml
 ```
 
-Приоритет настроек: аргументы CLI → YAML → встроенные значения по умолчанию.
+Configuration precedence is: command-line arguments → YAML file → built-in
+defaults.
 
-Готовые профили:
+Included profiles:
 
 - [config.fast-cpu.example.yaml](config.fast-cpu.example.yaml) — `small` + `int8`;
-- [config.fast-gpu.example.yaml](config.fast-gpu.example.yaml) — `small` + CUDA + batch 16.
+- [config.fast-gpu.example.yaml](config.fast-gpu.example.yaml) — `small` + CUDA + batch size 16.
 
-## Архитектура
+## Architecture
 
 ```text
 app/
@@ -137,25 +144,30 @@ app/
 └── cli.py
 ```
 
-## Разработка
+To add OpenAI, DeepL, a local LLM, Whisper translate, or SeamlessM4T, implement
+the relevant provider contract. `NLLBTranslationProvider` preserves a block's
+identifier, source text, source segment IDs, and timing; it only fills
+`translated_text`.
+
+## Development
 
 ```powershell
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Тесты используют mock-провайдеры и не скачивают реальные Whisper/NLLB-модели.
+Tests use mock providers and never download real Whisper or NLLB models.
 
-## Ограничения
+## Limitations
 
-- автоматические таймкоды и машинный перевод стоит проверять перед публикацией;
-- на длинном видео CPU-обработка может занимать значительное время;
-- очень короткий блок или сверхдлинное слово не всегда позволяют одновременно
-  выполнить все правила читабельности и сохранить исходный временной диапазон;
-- перед коммерческим или публичным распространением проверьте лицензию NLLB и
-  условия использования модели.
+- Review automatic timestamps and machine translation before publishing.
+- CPU processing can take a considerable amount of time for long videos.
+- A very short block or a single extremely long word cannot always satisfy every
+  readability rule while preserving the original timing.
+- Verify the NLLB license and its terms of use before commercial or public
+  distribution.
 
-## Лицензия
+## License
 
-Лицензия пока не выбрана. Перед публикацией установите подходящую лицензию
-(`MIT`, `Apache-2.0`, `GPL-3.0` и т. п.) и добавьте файл `LICENSE`.
+No license has been selected yet. Before publishing the repository, choose a
+license such as `MIT`, `Apache-2.0`, or `GPL-3.0` and add a `LICENSE` file.
